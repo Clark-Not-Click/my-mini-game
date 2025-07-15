@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Profit Simulator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .game-container {
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            position: relative;
+            max-width: 900px;
+            width: 90%;
+        }
+        
+        .exit-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        
+        .exit-btn:hover {
+            background-color: #ff3742;
+        }
+        
+        h1 {
+            color: #2f3542;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+        
+        .setup-view {
+            display: block;
+        }
+        
+        .simulation-view {
+            display: none;
+        }
+        
+        .input-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .input-group {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2f3542;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-group .help-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .simulate-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .simulate-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .results-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+            align-items: stretch;
+        }
+        
+        .stats-panel {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
+            max-height: 500px;
+            overflow: auto;
+        }
+        
+        .stats-panel h3 {
+            color: #2f3542;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+        }
+        
+        .positive {
+            color: #28a745;
+        }
+        
+        .negative {
+            color: #dc3545;
+        }
+        
+        .trade-log {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
+            max-height: 500px;
+        }
+        
+        .trade-log h3 {
+            color: #2f3542;
+            margin-bottom: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        #tradeLogContent {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        
+        
+        .trade-entry {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 6px;
+            align-items: center;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .trade-win {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .trade-loss {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .balance-chart {
+            width: 100%;
+            height: 200px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-line {
+            position: absolute;
+            stroke: #667eea;
+            stroke-width: 2;
+            fill: none;
+        }
+        
+        .reset-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-right: 10px;
+        }
+        
+        .reset-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .preset-btn {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .preset-btn:hover {
+            background-color: #138496;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <a href="index.html" class="exit-btn">← Back to Menu</a>
+        
+        <div class="setup-view" id="setupView">
+            <h1>📈 Trading Profit Simulator</h1>
+            <p>Simulate trading strategies to understand which approaches can be profitable</p>
+            <p><small><em>Note: Position sizes vary realistically (±30% of base 2% risk) to simulate real trading conditions</em></small></p>
+            
+            <div class="preset-buttons">
+                <button class="preset-btn" onclick="loadPreset('conservative')">Conservative (70% win, 1:1 ratio)</button>
+                <button class="preset-btn" onclick="loadPreset('aggressive')">Aggressive (45% win, 2:1 ratio)</button>
+                <button class="preset-btn" onclick="loadPreset('scalper')">Scalper (80% win, 0.5:1 ratio)</button>
+            </div>
+            
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="winRate">Win Rate (%)</label>
+                    <input type="number" id="winRate" min="0" max="100" value="60" step="1">
+                    <div class="help-text">Percentage of trades that will be profitable</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="startAmount">Starting Amount ($)</label>
+                    <input type="number" id="startAmount" min="1" value="10000" step="100">
+                    <div class="help-text">Initial capital to start trading</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="winLossRatio">Win/Loss Ratio</label>
+                    <input type="number" id="winLossRatio" min="0.1" value="1.5" step="0.1">
+                    <div class="help-text">How much you win vs lose per trade (e.g., 1.5 means win $150 for every $100 loss)</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="numberOfTrades">Number of Trades</label>
+                    <input type="number" id="numberOfTrades" min="1" max="10000" value="100" step="10">
+                    <div class="help-text">How many trades to simulate</div>
+                </div>
+            </div>
+            
+            <button class="simulate-btn" onclick="runSimulation()">Run Simulation</button>
+        </div>
+        
+        <div class="simulation-view" id="simulationView">
+            <h1>📊 Simulation Results</h1>
+            
+            <div class="results-section">
+                <div class="stats-panel">
+                    <h3>Trading Statistics</h3>
+                    <div class="stat-item">
+                        <span>Starting Balance:</span>
+                        <span class="stat-value" id="startBalance">$0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Final Balance:</span>
+                        <span class="stat-value" id="finalBalance">$0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Total Profit/Loss:</span>
+                        <span class="stat-value" id="totalPnL">$0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>ROI:</span>
+                        <span class="stat-value" id="roi">0%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Win Trades:</span>
+                        <span class="stat-value positive" id="winTrades">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Loss Trades:</span>
+                        <span class="stat-value negative" id="lossTrades">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Actual Win Rate:</span>
+                        <span class="stat-value" id="actualWinRate">0%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Largest Drawdown:</span>
+                        <span class="stat-value negative" id="maxDrawdown">$0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Avg Position Size:</span>
+                        <span class="stat-value" id="avgPositionSize">$0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Position Size Range:</span>
+                        <span class="stat-value" id="positionSizeRange">$0 - $0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Max Win Streak:</span>
+                        <span class="stat-value positive" id="maxWinStreak">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Max Loss Streak:</span>
+                        <span class="stat-value negative" id="maxLossStreak">0</span>
+                    </div>
+                </div>
+                
+                <div class="trade-log">
+                    <h3>Trade Log (Latest 20)</h3>
+                    <div id="tradeLogContent"></div>
+                </div>
+            </div>
+            
+            <div class="balance-chart">
+                <svg id="balanceChart" width="100%" height="100%"></svg>
+            </div>
+            
+            <button class="reset-btn" onclick="resetSimulation()">New Simulation</button>
+        </div>
+    </div>
+
+    <script>
+        let simulationData = {
+            trades: [],
+            balanceHistory: [],
+            stats: {}
+        };
+
+        function loadPreset(type) {
+            const presets = {
+                conservative: { winRate: 70, winLossRatio: 1.0, startAmount: 10000, numberOfTrades: 100 },
+                aggressive: { winRate: 45, winLossRatio: 2.0, startAmount: 10000, numberOfTrades: 100 },
+                scalper: { winRate: 80, winLossRatio: 0.5, startAmount: 10000, numberOfTrades: 200 }
+            };
+            
+            const preset = presets[type];
+            document.getElementById('winRate').value = preset.winRate;
+            document.getElementById('winLossRatio').value = preset.winLossRatio;
+            document.getElementById('startAmount').value = preset.startAmount;
+            document.getElementById('numberOfTrades').value = preset.numberOfTrades;
+        }
+
+        // Generate varied position size using normal distribution
+        function generatePositionSize(baseRisk, variation = 0.3) {
+            // Box-Muller transform for normal distribution
+            const u = Math.random();
+            const v = Math.random();
+            const normal = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+            
+            // Scale to desired variation (default ±30%)
+            const variationFactor = 1 + (normal * variation);
+            
+            // Ensure position size stays within reasonable bounds (0.5x to 2x base risk)
+            const clampedFactor = Math.max(0.5, Math.min(2.0, variationFactor));
+            
+            return baseRisk * clampedFactor;
+        }
+
+        function runSimulation() {
+            const winRate = parseFloat(document.getElementById('winRate').value) / 100;
+            const startAmount = parseFloat(document.getElementById('startAmount').value);
+            const winLossRatio = parseFloat(document.getElementById('winLossRatio').value);
+            const numberOfTrades = parseInt(document.getElementById('numberOfTrades').value);
+            
+            if (winRate < 0 || winRate > 1 || startAmount <= 0 || winLossRatio <= 0 || numberOfTrades <= 0) {
+                alert('Please enter valid values for all fields');
+                return;
+            }
+            
+            simulationData.trades = [];
+            simulationData.balanceHistory = [startAmount];
+            
+            let currentBalance = startAmount;
+            let winCount = 0;
+            let lossCount = 0;
+            let maxBalance = startAmount;
+            let maxDrawdown = 0;
+            let totalPositionSize = 0;
+            let minPositionSize = Infinity;
+            let maxPositionSize = 0;
+            
+            // Streak tracking
+            let currentWinStreak = 0;
+            let currentLossStreak = 0;
+            let maxWinStreak = 0;
+            let maxLossStreak = 0;
+            let lastTradeWin = null;
+            
+            const baseRiskPerTrade = startAmount * 0.02; // Base risk 2% per trade
+            
+            for (let i = 0; i < numberOfTrades; i++) {
+                const isWin = Math.random() < winRate;
+                const positionSize = generatePositionSize(baseRiskPerTrade);
+                let tradeResult;
+                
+                totalPositionSize += positionSize;
+                minPositionSize = Math.min(minPositionSize, positionSize);
+                maxPositionSize = Math.max(maxPositionSize, positionSize);
+                
+                if (isWin) {
+                    tradeResult = positionSize * winLossRatio;
+                    winCount++;
+                    
+                    // Update win streak
+                    if (lastTradeWin === true) {
+                        currentWinStreak++;
+                    } else {
+                        currentWinStreak = 1;
+                        currentLossStreak = 0;
+                    }
+                    maxWinStreak = Math.max(maxWinStreak, currentWinStreak);
+                    lastTradeWin = true;
+                } else {
+                    tradeResult = -positionSize;
+                    lossCount++;
+                    
+                    // Update loss streak
+                    if (lastTradeWin === false) {
+                        currentLossStreak++;
+                    } else {
+                        currentLossStreak = 1;
+                        currentWinStreak = 0;
+                    }
+                    maxLossStreak = Math.max(maxLossStreak, currentLossStreak);
+                    lastTradeWin = false;
+                }
+                
+                currentBalance += tradeResult;
+                simulationData.balanceHistory.push(currentBalance);
+                
+                simulationData.trades.push({
+                    id: i + 1,
+                    isWin: isWin,
+                    amount: tradeResult,
+                    positionSize: positionSize,
+                    balance: currentBalance,
+                    winStreak: currentWinStreak,
+                    lossStreak: currentLossStreak
+                });
+                
+                if (currentBalance > maxBalance) {
+                    maxBalance = currentBalance;
+                }
+                
+                const drawdown = maxBalance - currentBalance;
+                if (drawdown > maxDrawdown) {
+                    maxDrawdown = drawdown;
+                }
+                
+                if (currentBalance <= 0) {
+                    break;
+                }
+            }
+            
+            const totalPnL = currentBalance - startAmount;
+            const roi = ((currentBalance - startAmount) / startAmount) * 100;
+            const actualWinRate = (winCount / (winCount + lossCount)) * 100;
+            
+            const avgPositionSize = totalPositionSize / (winCount + lossCount);
+            
+            simulationData.stats = {
+                startBalance: startAmount,
+                finalBalance: currentBalance,
+                totalPnL: totalPnL,
+                roi: roi,
+                winTrades: winCount,
+                lossTrades: lossCount,
+                actualWinRate: actualWinRate,
+                maxDrawdown: maxDrawdown,
+                avgPositionSize: avgPositionSize,
+                minPositionSize: minPositionSize,
+                maxPositionSize: maxPositionSize,
+                maxWinStreak: maxWinStreak,
+                maxLossStreak: maxLossStreak
+            };
+            
+            displayResults();
+        }
+
+        function displayResults() {
+            const stats = simulationData.stats;
+            
+            document.getElementById('startBalance').textContent = `$${stats.startBalance.toLocaleString()}`;
+            document.getElementById('finalBalance').textContent = `$${stats.finalBalance.toLocaleString()}`;
+            
+            const pnlElement = document.getElementById('totalPnL');
+            pnlElement.textContent = `$${stats.totalPnL.toLocaleString()}`;
+            pnlElement.className = `stat-value ${stats.totalPnL >= 0 ? 'positive' : 'negative'}`;
+            
+            const roiElement = document.getElementById('roi');
+            roiElement.textContent = `${stats.roi.toFixed(1)}%`;
+            roiElement.className = `stat-value ${stats.roi >= 0 ? 'positive' : 'negative'}`;
+            
+            document.getElementById('winTrades').textContent = stats.winTrades;
+            document.getElementById('lossTrades').textContent = stats.lossTrades;
+            document.getElementById('actualWinRate').textContent = `${stats.actualWinRate.toFixed(1)}%`;
+            document.getElementById('maxDrawdown').textContent = `$${stats.maxDrawdown.toLocaleString()}`;
+            document.getElementById('avgPositionSize').textContent = `$${stats.avgPositionSize.toFixed(0)}`;
+            document.getElementById('positionSizeRange').textContent = `$${stats.minPositionSize.toFixed(0)} - $${stats.maxPositionSize.toFixed(0)}`;
+            document.getElementById('maxWinStreak').textContent = stats.maxWinStreak;
+            document.getElementById('maxLossStreak').textContent = stats.maxLossStreak;
+            
+            displayTradeLog();
+            drawBalanceChart();
+            
+            document.getElementById('setupView').style.display = 'none';
+            document.getElementById('simulationView').style.display = 'block';
+        }
+
+        function displayTradeLog() {
+            const logContent = document.getElementById('tradeLogContent');
+            logContent.innerHTML = '';
+            
+            const recentTrades = simulationData.trades.slice(-20);
+            
+            recentTrades.forEach(trade => {
+                const tradeDiv = document.createElement('div');
+                tradeDiv.className = `trade-entry ${trade.isWin ? 'trade-win' : 'trade-loss'}`;
+                
+                const streakText = trade.isWin ? 
+                    `W${trade.winStreak}` : 
+                    `L${trade.lossStreak}`;
+                const streakClass = trade.isWin ? 'positive' : 'negative';
+                
+                tradeDiv.innerHTML = `
+                    <span>Trade #${trade.id}</span>
+                    <span>${trade.isWin ? '✓' : '✗'} ${trade.amount >= 0 ? '+' : ''}$${trade.amount.toFixed(2)}</span>
+                    <span>Size: $${trade.positionSize.toFixed(0)}</span>
+                    <span class="${streakClass}">${streakText}</span>
+                    <span>Balance: $${trade.balance.toLocaleString()}</span>
+                `;
+                
+                logContent.appendChild(tradeDiv);
+            });
+        }
+
+        function drawBalanceChart() {
+            const chart = document.getElementById('balanceChart');
+            const rect = chart.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            
+            chart.innerHTML = '';
+            
+            const balanceHistory = simulationData.balanceHistory;
+            if (balanceHistory.length < 2) return;
+            
+            const minBalance = Math.min(...balanceHistory);
+            const maxBalance = Math.max(...balanceHistory);
+            const balanceRange = maxBalance - minBalance;
+            
+            const padding = 20;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+            
+            let pathData = `M ${padding} ${padding + chartHeight - ((balanceHistory[0] - minBalance) / balanceRange) * chartHeight}`;
+            
+            for (let i = 1; i < balanceHistory.length; i++) {
+                const x = padding + (i / (balanceHistory.length - 1)) * chartWidth;
+                const y = padding + chartHeight - ((balanceHistory[i] - minBalance) / balanceRange) * chartHeight;
+                pathData += ` L ${x} ${y}`;
+            }
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', pathData);
+            path.setAttribute('stroke', '#667eea');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('fill', 'none');
+            
+            chart.appendChild(path);
+            
+            const startingLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            const startingY = padding + chartHeight - ((simulationData.stats.startBalance - minBalance) / balanceRange) * chartHeight;
+            startingLine.setAttribute('x1', padding);
+            startingLine.setAttribute('y1', startingY);
+            startingLine.setAttribute('x2', padding + chartWidth);
+            startingLine.setAttribute('y2', startingY);
+            startingLine.setAttribute('stroke', '#28a745');
+            startingLine.setAttribute('stroke-width', '1');
+            startingLine.setAttribute('stroke-dasharray', '5,5');
+            
+            chart.appendChild(startingLine);
+        }
+
+        function resetSimulation() {
+            document.getElementById('setupView').style.display = 'block';
+            document.getElementById('simulationView').style.display = 'none';
+            simulationData = { trades: [], balanceHistory: [], stats: {} };
+        }
+    </script>
+</body>
+</html>
